@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Focus</title>
+<meta name="theme-color" content="#1f6f8b">
+<meta name="description" content="Focus blocks, Big 3, and a voice log that syncs across your devices.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>Focus</h1>
+      <div class="spaces" role="group" aria-label="Choose space">
+        <button id="spaceWork" class="space on" aria-pressed="true">Work</button>
+        <button id="spacePersonal" class="space" aria-pressed="false">Personal</button>
+      </div>
+    </div>
+    <div class="clock" aria-live="off">
+      <div id="clockTime">--:--</div>
+      <div id="clockDay"></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button id="readAloudBtn" class="chip" aria-pressed="true">🔊 Read aloud: On</button>
+    <button id="lockBtn" class="chip" hidden>🔒 Lock personal</button>
+    <button id="installBtn" class="chip" hidden>⬇ Install app</button>
+  </div>
+
+  <section id="signInBanner" class="banner" hidden>
+    <p>Sign in with Google to sync your Big 3 and your log on all your devices.</p>
+    <button id="signInBtn" class="primary">Sign in with Google</button>
+  </section>
+
+  <section id="stopBanner" class="banner warm" hidden>
+    <p><strong>Workday's done.</strong> Did your Big 3 get done?</p>
+    <div class="row">
+      <button id="moveBtn" class="primary">Move unfinished to tomorrow</button>
+      <button id="closeStop" class="secondary">Close</button>
+    </div>
+  </section>
+
+  <!-- TIMER -->
+  <section class="card timer work" id="timerCard">
+    <p class="mode" id="mode">Work</p>
+    <div class="dial">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="track" cx="60" cy="60" r="50"></circle>
+        <circle class="bar" id="bar" cx="60" cy="60" r="50"></circle>
+      </svg>
+      <div class="time" id="time" role="timer" aria-live="off">15:00</div>
+    </div>
+    <p class="msg" id="msg">Pick one small thing. Press Start.</p>
+    <div class="btns">
+      <button class="primary big" id="startBtn">Start</button>
+      <button class="flow big" id="flowBtn" hidden>I'm in flow. Keep working</button>
+      <button class="secondary" id="resetBtn">Reset</button>
+    </div>
+    <div class="count"><strong id="countNum">0</strong>&nbsp;work blocks today <span class="dots" id="dots"></span></div>
+  </section>
+
+  <!-- BIG 3 -->
+  <section class="card">
+    <h2>Today's Big 3</h2>
+    <p class="hint">Must get done today, no matter how you feel.</p>
+    <div id="big3" class="big3"></div>
+  </section>
+
+  <!-- RIGHT NOW -->
+  <section class="card">
+    <h2>Right now</h2>
+    <div class="field">
+      <input id="nowInput" type="text" placeholder="What am I working on this block?" autocomplete="off">
+      <button class="mic" data-target="nowInput" aria-label="Speak">🎤</button>
+    </div>
+  </section>
+
+  <!-- LOG -->
+  <section class="card log" id="logCard">
+    <h2 id="logTitle">Work log</h2>
+    <div id="logNeedsSignIn" class="hint" hidden>Sign in above to use your log.</div>
+    <div id="logLocked" class="locked" hidden>
+      <p>🔒 Personal is locked.</p>
+      <button id="unlockBtn" class="primary">Unlock with PIN</button>
+    </div>
+    <div id="logBody">
+      <div class="kinds" role="group" aria-label="Type of entry">
+        <button id="kindDid" class="kind on" aria-pressed="true">✅ I did</button>
+        <button id="kindIdea" class="kind" aria-pressed="false">💡 Idea</button>
+      </div>
+      <div class="field area">
+        <textarea id="logText" rows="3" placeholder="Tap the mic and talk."></textarea>
+        <button class="mic tall" data-target="logText" aria-label="Speak">🎤</button>
+      </div>
+      <button id="saveLog" class="primary big">Save to log</button>
+      <ul id="logList" class="entries"></ul>
+      <p id="logEmpty" class="hint">Nothing logged yet today.</p>
+    </div>
+  </section>
+
+  <!-- OTHER TASKS -->
+  <section class="card">
+    <h2>Other tasks</h2>
+    <div class="field">
+      <input id="otherInput" type="text" placeholder="Add a task" autocomplete="off">
+      <button class="mic" data-target="otherInput" aria-label="Speak">🎤</button>
+      <button id="addOther" class="add" aria-label="Add task">＋</button>
+    </div>
+    <ul id="otherList" class="tasks"></ul>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="card settings">
+    <h2>Settings</h2>
+    <div class="setrow">
+      <span>Work block</span>
+      <div class="stepper"><button id="wMinus" aria-label="Less work time">−</button><span id="wVal">15 min</span><button id="wPlus" aria-label="More work time">+</button></div>
+    </div>
+    <div class="setrow">
+      <span>Break</span>
+      <div class="stepper"><button id="bMinus" aria-label="Less break time">−</button><span id="bVal">15 min</span><button id="bPlus" aria-label="More break time">+</button></div>
+    </div>
+    <div class="setrow">
+      <label for="stopTime">Workday stop time</label>
+      <input id="stopTime" type="time" value="17:30">
+    </div>
+    <div class="setrow">
+      <span>Alerts when the app is in the background</span>
+      <button id="alertsBtn" class="secondary small">Turn on alerts</button>
+    </div>
+    <div class="btns">
+      <button id="printBtn" class="secondary">🖨 Print today's sheet</button>
+      <button id="backupBtn" class="secondary">💾 Download my log</button>
+    </div>
+    <div class="account" id="accountBox"></div>
+  </section>
+
+  <p class="foot">Keep this app open during work blocks so you hear the chime.</p>
+</div>
+
+<!-- PIN PAD -->
+<div id="pinOverlay" class="overlay" hidden>
+  <div class="pinbox" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+    <h2 id="pinTitle">Enter your PIN</h2>
+    <p id="pinMsg" class="hint"></p>
+    <div id="pinDots" class="pindots" aria-live="polite"></div>
+    <div id="pinPad" class="pinpad"></div>
+    <button id="pinCancel" class="secondary">Cancel</button>
+  </div>
+</div>
+
+<div id="celebrate" class="celebrate" hidden><div>🎉 All 3 done!</div></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<div id="printSheet" class="printsheet"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

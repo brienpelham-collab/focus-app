@@ -1,0 +1,15 @@
+{
+  "name": "Focus",
+  "short_name": "Focus",
+  "description": "Focus blocks, Big 3, and a voice log that syncs across your devices.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef3f4",
+  "theme_color": "#1f6f8b",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
