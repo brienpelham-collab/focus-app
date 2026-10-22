@@ -41,10 +41,10 @@
   </section>
 
   <section id="stopBanner" class="banner warm" hidden>
-    <p><strong>Workday's done.</strong> Did your Big 3 get done?</p>
+    <p><strong>Check-in time.</strong> How's your Big 3? You can keep working.</p>
     <div class="row">
-      <button id="moveBtn" class="primary">Move unfinished to tomorrow</button>
-      <button id="closeStop" class="secondary">Close</button>
+      <button id="closeStop" class="primary">Keep working</button>
+      <button id="moveBtn" class="secondary">Move unfinished to tomorrow</button>
     </div>
   </section>
 
@@ -129,9 +129,14 @@
       <div class="stepper"><button id="bMinus" aria-label="Less break time">−</button><span id="bVal">15 min</span><button id="bPlus" aria-label="More break time">+</button></div>
     </div>
     <div class="setrow">
-      <label for="stopTime">Workday stop time</label>
-      <input id="stopTime" type="time" value="17:30">
+      <label for="stopTime">Check-in reminder</label>
+      <div class="stepper"><input id="stopTime" type="time" value="17:30"><button id="checkinBtn" class="secondary small" aria-pressed="true">On</button></div>
     </div>
+    <div class="setrow">
+      <label for="dayStart">New day starts at</label>
+      <select id="dayStart"></select>
+    </div>
+    <p class="hint">Work late? Your Big 3 and log stay on the same day until this time.</p>
     <div class="setrow">
       <span>Alerts when the app is in the background</span>
       <button id="alertsBtn" class="secondary small">Turn on alerts</button>

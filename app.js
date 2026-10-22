@@ -16,14 +16,17 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
 const z = n => String(n).padStart(2, '0');
-const dayKey = (d = new Date()) => d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+// The app's "day" rolls over at your chosen hour (default 4 AM), so late-night work counts as the same day.
+const dayStartHour = () => store.get('dayStart', 4);
+const dayKey = (d = new Date()) => { const s = new Date(d.getTime() - dayStartHour() * 3600000); return s.getFullYear() + '-' + z(s.getMonth() + 1) + '-' + z(s.getDate()); };
 const fmtClock = ts => new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
 const settings = {
   readAloud: store.get('readAloud', true),
   workMin: store.get('workMin', 15),
   breakMin: store.get('breakMin', 15),
-  stopTime: store.get('stopTime', '17:30')
+  stopTime: store.get('stopTime', '17:30'),
+  checkinOn: store.get('checkinOn', true)
 };
 let space = store.get('space', 'work');
 let today = dayKey();
@@ -518,23 +521,32 @@ $('printBtn').onclick = () => {
   window.print();
 };
 
-/* ---------- Stop time ---------- */
+/* ---------- Check-in reminder and day start ---------- */
 $('stopTime').value = settings.stopTime;
 $('stopTime').addEventListener('change', e => { settings.stopTime = e.target.value || '17:30'; store.set('stopTime', settings.stopTime); store.set('stopShown', ''); });
+function drawCheckin() { const b = $('checkinBtn'); b.textContent = settings.checkinOn ? 'On' : 'Off'; b.setAttribute('aria-pressed', String(settings.checkinOn)); $('stopTime').disabled = !settings.checkinOn; }
+$('checkinBtn').onclick = () => { settings.checkinOn = !settings.checkinOn; store.set('checkinOn', settings.checkinOn); drawCheckin(); };
+drawCheckin();
+const ds = $('dayStart');
+for (let h = 0; h <= 8; h++) { const o = document.createElement('option'); o.value = h; o.textContent = h === 0 ? '12 AM (midnight)' : h + ' AM'; ds.appendChild(o); }
+ds.value = String(dayStartHour());
+ds.addEventListener('change', () => { store.set('dayStart', Number(ds.value)); toast('Your day now starts at ' + ds.options[ds.selectedIndex].text + '.'); clock(); });
 function checkStop() {
-  if (store.get('stopShown', '') === today) return;
+  if (!settings.checkinOn || store.get('stopShown', '') === today) return;
   const [h, m] = settings.stopTime.split(':').map(Number); const n = new Date();
-  if (n.getHours() * 60 + n.getMinutes() >= h * 60 + m) {
+  const st = dayStartHour() * 60, rel = x => ((x - st) % 1440 + 1440) % 1440;
+  if (rel(n.getHours() * 60 + n.getMinutes()) >= rel(h * 60 + m)) {
     store.set('stopShown', today);
     $('stopBanner').hidden = false;
-    alertUser("Workday's done", 'Did your Big 3 get done?', "Your workday is done. Did your Big 3 get done?");
+    const when = n.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    alertUser('Check-in time', "It's " + when + ". How's your Big 3? Keep working if you want.", "It's " + when + ". Check-in time. How is your Big 3 going? You can keep working if you want.");
   }
 }
 $('closeStop').onclick = () => $('stopBanner').hidden = true;
 $('moveBtn').onclick = () => {
   const left = plan.big3.filter(b => b.t.trim() && !b.done).map(b => b.t);
   if (!left.length) { toast('All done. Nothing to move!'); $('stopBanner').hidden = true; return; }
-  const t = new Date(); t.setDate(t.getDate() + 1); const tk = dayKey(t);
+  const tk = dayKey(new Date(Date.now() + 24 * 3600000));
   const next = normalizePlan(store.get('plan-' + tk, null));
   for (const item of left) {
     const slot = next.big3.find(b => !b.t.trim());
