@@ -193,7 +193,19 @@ function startDictation(btn, target) {
     target.value = (base + finalText + interim).replace(/\s+/g, ' ').trimStart();
     target.dispatchEvent(new Event('input'));
   };
-  rec.onerror = e => { if (e.error === 'not-allowed') toast('Microphone is blocked. Allow the mic for this site in your browser.'); };
+  let heard = false;
+  rec.onaudiostart = () => toast('Listening… start talking.');
+  rec.onspeechstart = () => { heard = true; };
+  rec.onerror = e => {
+    const msgs = {
+      'not-allowed': 'Microphone is blocked. Click the lock icon next to the address and allow the mic.',
+      'service-not-allowed': 'This browser blocked voice typing. Use Wispr Flow in the box instead.',
+      'audio-capture': 'No microphone found. Check that the right mic is plugged in and picked in Windows sound settings.',
+      'network': 'Voice typing needs the internet. Check your connection, or use Wispr Flow.',
+      'no-speech': "I didn't hear anything. Check your mic, or another app may be using it."
+    };
+    toast((msgs[e.error] || 'Voice typing stopped (' + e.error + '). Use Wispr Flow in the box instead.'));
+  };
   rec.onend = () => { btn.classList.remove('listening'); btn.setAttribute('aria-label', 'Speak'); rec = null; recBtn = null; target.value = target.value.trim(); target.dispatchEvent(new Event('change')); };
   btn.classList.add('listening'); btn.setAttribute('aria-label', 'Stop listening');
   try { rec.start(); } catch (e) { btn.classList.remove('listening'); rec = null; }
