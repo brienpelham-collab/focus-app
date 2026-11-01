@@ -674,6 +674,10 @@ function checkNudge() {
   alertUser('Time for a focus block?', 'Just 5 minutes. Pick one small thing.', 'Time for a focus block? Just five minutes is enough.');
 }
 $('nudgeFive').onclick = startFive;
+$('testNudgeBtn').onclick = () => {
+  unlockAudio(); toast('A nudge is coming in 10 seconds. Switch to another app or window to see the pop-up.');
+  setTimeout(() => { $('nudgeBanner').hidden = false; alertUser('Time for a focus block?', 'Just 5 minutes. Pick one small thing.', 'Time for a focus block? Just five minutes is enough.'); }, 10000);
+};
 $('nudgeLater').onclick = () => { hideNudge(); toast("Okay. I'll check back in an hour."); };
 $('nudgeRest').onclick = () => setRest(true);
 

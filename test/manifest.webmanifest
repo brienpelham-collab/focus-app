@@ -1,6 +1,6 @@
 {
-  "name": "Focus",
-  "short_name": "Focus",
+  "name": "Focus Test",
+  "short_name": "Focus Test",
   "description": "Focus blocks, Big 3, and a voice log that syncs across your devices.",
   "start_url": "./",
   "scope": "./",
