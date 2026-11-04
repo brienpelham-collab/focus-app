@@ -337,7 +337,7 @@ function renderPlan() {
     row.classList.toggle('done', b.done); chk.classList.toggle('done', b.done);
     chk.textContent = b.done ? '✓' : ''; chk.setAttribute('aria-label', (b.done ? 'Mark not done: ' : 'Mark done: ') + (b.t || 'must-do ' + (i + 1)));
   });
-  const ni = $('nowInput'); if (ni !== focused && ni.value !== plan.now) ni.value = plan.now;
+  const ni = $('nowInput'); if (ni !== focused && ni.value !== plan.now) { ni.value = plan.now; growBox(ni); }
   const ul = $('otherList'); ul.innerHTML = '';
   plan.other.forEach((o, i) => {
     const li = document.createElement('li'); if (o.done) li.className = 'done';
@@ -357,9 +357,13 @@ function checkCelebrate() {
   }
 }
 $('nowInput').addEventListener('input', e => { plan.now = e.target.value; savePlan(); });
-function addOther() { const i = $('otherInput'); const t = i.value.trim(); if (!t) return; plan.other.push({ t, done: false }); i.value = ''; savePlan(); renderPlan(); }
+function addOther() { const i = $('otherInput'); const t = i.value.trim(); if (!t) return; plan.other.push({ t, done: false }); i.value = ''; growBox(i); savePlan(); renderPlan(); }
 $('addOther').onclick = addOther;
-$('otherInput').addEventListener('keydown', e => { if (e.key === 'Enter') addOther(); });
+// Enter saves the task; Shift+Enter starts a new line inside it.
+$('otherInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addOther(); } });
+// Boxes marked "grow" get taller as you type, so a full paragraph fits.
+function growBox(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 4) + 'px'; }
+document.querySelectorAll('textarea.grow').forEach(el => { el.addEventListener('input', () => growBox(el)); setTimeout(() => growBox(el), 0); });
 
 /* ---------- Encryption for personal entries ---------- */
 let cryptoKey = null, lockMeta; // undefined = not loaded, null = no PIN set yet

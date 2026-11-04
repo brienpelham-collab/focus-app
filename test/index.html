@@ -94,9 +94,9 @@
   <!-- RIGHT NOW -->
   <section class="card">
     <h2>Right now</h2>
-    <div class="field">
-      <input id="nowInput" type="text" placeholder="What am I working on this block?" autocomplete="off">
-      <button class="mic" data-target="nowInput" aria-label="Speak">🎤</button>
+    <div class="field area">
+      <textarea id="nowInput" class="grow" rows="2" placeholder="What am I working on this block? Type or talk."></textarea>
+      <button class="mic tall" data-target="nowInput" aria-label="Speak">🎤</button>
     </div>
   </section>
 
@@ -126,8 +126,8 @@
   <!-- OTHER TASKS -->
   <section class="card">
     <h2>Other tasks</h2>
-    <div class="field">
-      <input id="otherInput" type="text" placeholder="Add a task" autocomplete="off">
+    <div class="field area">
+      <textarea id="otherInput" class="grow" rows="2" placeholder="Add a task. Press ＋ to save it."></textarea>
       <button class="mic" data-target="otherInput" aria-label="Speak">🎤</button>
       <button id="addOther" class="add" aria-label="Add task">＋</button>
     </div>
