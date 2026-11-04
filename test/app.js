@@ -701,6 +701,12 @@ checkGoal();
 // Public web-push key from Firebase. Safe to keep in the code.
 const VAPID_KEY = 'BDi1TEx2mARr59K6QavXbtCfVFzbzkTQZ51EYWHO8rViRO1sGpTwVfIJDyMZKO3EcFEUsqErj6yc_f_2etLL2CQ';
 let pushBusy = false;
+function setPushStatus(t) { const el = $('pushStatus'); if (el) el.textContent = t; }
+setTimeout(() => {
+  const el = $('pushStatus'); if (!el || !el.textContent.includes('checking')) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') setPushStatus('Pop-ups when the app is closed: turn on alerts first.');
+  else { try { if (!user) { setPushStatus('Pop-ups when the app is closed: sign in first.'); return; } } catch (e) {} setPushStatus('Pop-ups when the app is closed: still connecting. Refresh in a minute.'); }
+}, 15000);
 async function setupPush() {
   try {
     if (pushBusy || !user || !db || !fbApp) return;
@@ -714,9 +720,11 @@ async function setupPush() {
       const device = /Android/i.test(navigator.userAgent) ? 'Phone' : /iPhone|iPad/i.test(navigator.userAgent) ? 'iPhone' : 'Computer';
       await fb.setDoc(fb.doc(db, 'users', user.uid, 'tokens', token), { device, updatedAt: Date.now() });
       if (store.get('pushToken', '') !== token) { store.set('pushToken', token); toast('Pop-ups are set up on this ' + device.toLowerCase() + '.'); }
+      setPushStatus('✅ Pop-ups when the app is closed: set up on this ' + device.toLowerCase() + '.');
     }
   } catch (e) {
     toast('Pop-up setup did not finish: ' + (e.code || e.message || e));
+    setPushStatus('⚠️ Pop-ups not set up yet: ' + (e.code || e.message || e));
   }
   pushBusy = false;
 }
