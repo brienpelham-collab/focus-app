@@ -154,3 +154,7 @@ select{font:inherit;color:var(--fg);background:var(--bg);border:2px solid var(--
 .chip[aria-pressed="true"]{border-color:var(--rest)}
 textarea.grow{resize:none;overflow:hidden;min-height:3.2em}
 .tasks li span{white-space:pre-wrap}
+textarea.grow.b3{min-height:0}
+.b3row{align-items:flex-start}
+.b3row.done textarea{text-decoration:line-through;color:var(--muted)}
+.b3row .check{height:56px;align-self:flex-start}

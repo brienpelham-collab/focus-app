@@ -320,9 +320,9 @@ function renderPlan() {
     for (let i = 0; i < 3; i++) {
       const row = document.createElement('div'); row.className = 'b3row';
       const chk = document.createElement('button'); chk.className = 'check'; chk.dataset.i = i;
-      const inp = document.createElement('input'); inp.type = 'text'; inp.id = 'big3-' + i; inp.placeholder = 'Must-do #' + (i + 1); inp.autocomplete = 'off';
+      const inp = document.createElement('textarea'); inp.className = 'grow b3'; inp.rows = 1; inp.id = 'big3-' + i; inp.placeholder = 'Must-do #' + (i + 1);
       const mic = document.createElement('button'); mic.className = 'mic'; mic.dataset.target = inp.id; mic.textContent = '🎤'; mic.setAttribute('aria-label', 'Speak');
-      inp.addEventListener('input', () => { plan.big3[i].t = inp.value; savePlan(); });
+      inp.addEventListener('input', () => { plan.big3[i].t = inp.value; savePlan(); growBox(inp); });
       chk.addEventListener('click', () => {
         if (!plan.big3[i].t.trim()) { toast('Add the task first.'); inp.focus(); return; }
         plan.big3[i].done = !plan.big3[i].done; savePlan(); renderPlan();
@@ -332,8 +332,9 @@ function renderPlan() {
     }
   }
   [...wrap.children].forEach((row, i) => {
-    const b = plan.big3[i]; const inp = row.querySelector('input'); const chk = row.querySelector('.check');
+    const b = plan.big3[i]; const inp = row.querySelector('textarea'); const chk = row.querySelector('.check');
     if (inp !== focused && inp.value !== b.t) inp.value = b.t;
+    growBox(inp);
     row.classList.toggle('done', b.done); chk.classList.toggle('done', b.done);
     chk.textContent = b.done ? '✓' : ''; chk.setAttribute('aria-label', (b.done ? 'Mark not done: ' : 'Mark done: ') + (b.t || 'must-do ' + (i + 1)));
   });
