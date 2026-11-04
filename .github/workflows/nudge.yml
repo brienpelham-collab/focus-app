@@ -1,0 +1,26 @@
+name: Focus hourly nudge
+on:
+  schedule:
+    - cron: '0 * * * *'   # every hour (GitHub may run it a few minutes late)
+  workflow_dispatch:
+    inputs:
+      test:
+        description: 'Send a test pop-up to every device now'
+        type: boolean
+        default: true
+jobs:
+  nudge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --omit=dev --no-audit --no-fund
+        working-directory: nudger
+      - run: node nudge.mjs
+        working-directory: nudger
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          NUDGE_TEST: ${{ github.event_name == 'workflow_dispatch' && inputs.test }}

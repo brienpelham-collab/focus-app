@@ -239,14 +239,14 @@ document.addEventListener('click', e => {
 });
 
 /* ---------- Firebase (loaded lazily so the timer works even if it can't load) ---------- */
-let fb = null, auth = null, db = null, user = null;
+let fb = null, auth = null, db = null, user = null, fbApp = null;
 let unsubPlan = null, unsubEntries = null;
 async function initCloud() {
   try {
     const base = `https://www.gstatic.com/firebasejs/${FB_VER}/`;
     const [a, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     fb = { ...a, ...au, ...fs };
-    const app = fb.initializeApp(firebaseConfig);
+    const app = fb.initializeApp(firebaseConfig); fbApp = app;
     auth = fb.getAuth(app);
     try { db = fb.initializeFirestore(app, { localCache: fb.persistentLocalCache({ tabManager: fb.persistentMultipleTabManager() }) }); }
     catch (e) { db = fb.getFirestore(app); }
@@ -282,7 +282,7 @@ function onUser() {
   }
   lockMeta = undefined; cryptoKey = null;
   subscribePlan(); subscribeEntries(); renderLogState();
-  if (user) pushStatus(true);
+  if (user) { pushStatus(true); setupPush(); }
 }
 const userDoc = (...p) => fb.doc(db, 'users', user.uid, ...p);
 const userCol = (...p) => fb.collection(db, 'users', user.uid, ...p);
@@ -611,7 +611,7 @@ function drawAlerts() {
   b.textContent = Notification.permission === 'granted' ? 'Alerts on' : Notification.permission === 'denied' ? 'Blocked in browser settings' : 'Turn on alerts';
   b.disabled = Notification.permission !== 'default';
 }
-$('alertsBtn').onclick = async () => { try { await Notification.requestPermission(); } catch (e) {} drawAlerts(); };
+$('alertsBtn').onclick = async () => { try { await Notification.requestPermission(); } catch (e) {} drawAlerts(); setupPush(); };
 drawAlerts();
 
 /* ---------- Install + offline ---------- */
@@ -657,7 +657,7 @@ function pushStatus(force) {
     lastActive: store.get('lastActive', now), lastWork: store.get('lastWork', 0),
     focusDay: today, focusMin: counts.min, goalMin: settings.goalMin,
     restDay: isRest(), nudgeOn: settings.nudgeOn, nudgeStart: settings.nudgeStart, nudgeEnd: settings.nudgeEnd,
-    stopTime: settings.stopTime, checkinOn: settings.checkinOn,
+    stopTime: settings.stopTime, checkinOn: settings.checkinOn, dayStart: dayStartHour(),
     tz: Intl.DateTimeFormat().resolvedOptions().timeZone, updatedAt: now
   }, { merge: true }).catch(() => {});
 }
@@ -696,6 +696,30 @@ $('nudgeRest').onclick = () => setRest(true);
   markActive();
 })();
 checkGoal();
+
+/* ---------- Pop-ups when the app is closed (Firebase Cloud Messaging) ---------- */
+// Public web-push key from Firebase. Safe to keep in the code.
+const VAPID_KEY = 'BDi1TEx2mARr59K6QavXbtCfVFzbzkTQZ51EYWHO8rViRO1sGpTwVfIJDyMZKO3EcFEUsqErj6yc_f_2etLL2CQ';
+let pushBusy = false;
+async function setupPush() {
+  try {
+    if (pushBusy || !user || !db || !fbApp) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
+    pushBusy = true;
+    const m = await import(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-messaging.js`);
+    if (!(await m.isSupported())) { pushBusy = false; return; }
+    const reg = swReg || await navigator.serviceWorker.ready;
+    const token = await m.getToken(m.getMessaging(fbApp), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if (token) {
+      const device = /Android/i.test(navigator.userAgent) ? 'Phone' : /iPhone|iPad/i.test(navigator.userAgent) ? 'iPhone' : 'Computer';
+      await fb.setDoc(fb.doc(db, 'users', user.uid, 'tokens', token), { device, updatedAt: Date.now() });
+      if (store.get('pushToken', '') !== token) { store.set('pushToken', token); toast('Pop-ups are set up on this ' + device.toLowerCase() + '.'); }
+    }
+  } catch (e) {
+    toast('Pop-up setup did not finish: ' + (e.code || e.message || e));
+  }
+  pushBusy = false;
+}
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(r => swReg = r).catch(() => {});
 

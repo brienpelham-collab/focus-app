@@ -1,5 +1,5 @@
 // Focus service worker: makes the app open and run offline.
-const VERSION = 'focus-test-v4';
+const VERSION = 'focus-test-v5';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -26,6 +26,15 @@ self.addEventListener('fetch', e => {
       return hit || net;
     }));
   }
+});
+// Pop-ups sent by the hourly check, even when the app is closed.
+self.addEventListener('push', e => {
+  let p = {};
+  try { p = e.data ? e.data.json() : {}; } catch (err) { p = { data: { body: e.data && e.data.text() } }; }
+  const d = p.data || {}, n = p.notification || {};
+  const title = d.title || n.title || 'Focus';
+  const body = d.body || n.body || 'Time for a focus block? Just 5 minutes.';
+  e.waitUntil(self.registration.showNotification(title, { body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: d.tag || 'focus-nudge', renotify: true }));
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();
